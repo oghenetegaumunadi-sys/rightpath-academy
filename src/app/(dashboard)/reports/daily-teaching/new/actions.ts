@@ -173,6 +173,37 @@ export async function createTeachingReportAction(
 
     const admin = createAdminClient();
 
+    if (role === "teacher") {
+      const {
+        data: linkedTeacher,
+        error: linkedTeacherError,
+      } = await admin
+        .from("teachers")
+        .select("id, status")
+        .eq("profile_id", user.id)
+        .eq("status", "active")
+        .maybeSingle();
+
+      if (linkedTeacherError || !linkedTeacher) {
+        return {
+          success: false,
+          message:
+            linkedTeacherError?.message ??
+            "Your account is not linked to an active teacher record.",
+          reportId: null,
+        };
+      }
+
+      if (linkedTeacher.id !== teacherId) {
+        return {
+          success: false,
+          message:
+            "Teachers may only submit reports for their own account.",
+          reportId: null,
+        };
+      }
+    }
+
     const {
       data: assignment,
       error: assignmentError,

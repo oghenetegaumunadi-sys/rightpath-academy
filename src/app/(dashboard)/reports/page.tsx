@@ -31,7 +31,7 @@ const reportModules = [
     title: "Student Reports",
     description:
       "Enrollment summaries, class lists, active students and admission statistics.",
-    href: "/students",
+    href: "/reports/students",
     icon: Users,
     status: "Available",
     available: true,
@@ -40,7 +40,7 @@ const reportModules = [
     title: "Attendance Reports",
     description:
       "Daily attendance summaries, absences, late arrivals and class completion.",
-    href: "/attendance/dashboard",
+    href: "/reports/attendance",
     icon: CalendarCheck,
     status: "Available",
     available: true,
@@ -49,7 +49,7 @@ const reportModules = [
     title: "Academic Reports",
     description:
       "Published results, class performance, subject performance and report cards.",
-    href: "/results/report-cards",
+    href: "/reports/academic",
     icon: GraduationCap,
     status: "Available",
     available: true,
@@ -58,7 +58,7 @@ const reportModules = [
     title: "Teacher Workload",
     description:
       "Teacher assignments, classes taught, subjects assigned and submission activity.",
-    href: "/teacher-assignments",
+    href: "/reports/teacher-workload",
     icon: ClipboardList,
     status: "Available",
     available: true,
