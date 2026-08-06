@@ -1,0 +1,76 @@
+@import "tailwindcss";
+
+:root {
+  --background: #ffffff;
+  --foreground: #171717;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --background: #0a0a0a;
+    --foreground: #ededed;
+  }
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: Arial, Helvetica, sans-serif;
+}
+
+html,
+body {
+  font-family:
+    Arial,
+    Helvetica,
+    system-ui,
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    sans-serif;
+}
+
+:root {
+  --rpa-primary: #0f6b3e;
+  --rpa-primary-dark: #064e2a;
+  --rpa-primary-deep: #043d22;
+  --rpa-accent: #f59e0b;
+  --rpa-background: #f8fafc;
+  --rpa-card: #ffffff;
+  --rpa-border: #e2e8f0;
+  --rpa-text: #0f172a;
+  --rpa-muted: #64748b;
+}
+
+html {
+  background: var(--rpa-background);
+}
+
+body {
+  background:
+    radial-gradient(
+      circle at top right,
+      rgba(15, 107, 62, 0.06),
+      transparent 28rem
+    ),
+    var(--rpa-background);
+  color: var(--rpa-text);
+}
+
+::selection {
+  background: rgba(15, 107, 62, 0.2);
+  color: var(--rpa-primary-deep);
+}
+
+@media print {
+  body {
+    background: white !important;
+  }
+}
