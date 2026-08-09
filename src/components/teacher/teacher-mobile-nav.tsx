@@ -59,22 +59,22 @@ export function TeacherMobileNav() {
       <button
         type="button"
         onClick={() => setOpen(true)}
-        className="inline-flex size-10 items-center justify-center rounded-xl border border-slate-200 bg-white text-slate-700 lg:hidden"
+        className="inline-flex size-10 shrink-0 items-center justify-center rounded-xl border border-slate-200 bg-white text-slate-700 shadow-sm lg:hidden"
         aria-label="Open teacher navigation"
       >
         <Menu className="size-5" />
       </button>
 
       {open ? (
-        <div className="fixed inset-0 z-50 lg:hidden">
+        <div className="fixed inset-0 z-[100] lg:hidden">
           <button
             type="button"
             aria-label="Close navigation"
             onClick={() => setOpen(false)}
-            className="absolute inset-0 bg-slate-950/40 backdrop-blur-sm"
+            className="absolute inset-0 bg-slate-950/50"
           />
 
-          <aside className="relative flex h-full w-[86%] max-w-sm flex-col bg-[#075a36] shadow-2xl">
+          <aside className="relative z-[101] flex h-dvh w-[82vw] max-w-[340px] flex-col bg-[#075a36] shadow-2xl">
             <div className="flex h-20 items-center justify-between border-b border-white/10 px-5">
               <SchoolLogo
                 size="md"
