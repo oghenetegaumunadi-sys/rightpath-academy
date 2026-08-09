@@ -2,10 +2,10 @@ export const DASHBOARD_ROUTES = {
   principal: "/dashboard/principal",
   vice_principal: "/dashboard/vice-principal",
   admin: "/dashboard/admin",
-  teacher: "/dashboard/teacher",
+  teacher: "/teacher",
   accountant: "/dashboard/accountant",
   librarian: "/dashboard/librarian",
-  parent: "/dashboard/parent",
+  parent: "/parent",
 } as const;
 
 export type AppRole = keyof typeof DASHBOARD_ROUTES;

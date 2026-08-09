@@ -372,6 +372,10 @@ export type Database = {
           lesson_status: string
           notes: string | null
           report_date: string
+          review_comment: string | null
+          review_status: string
+          reviewed_at: string | null
+          reviewed_by: string | null
           started_at: string | null
           students_present: number | null
           submitted_by: string | null
@@ -387,6 +391,10 @@ export type Database = {
           lesson_status?: string
           notes?: string | null
           report_date?: string
+          review_comment?: string | null
+          review_status?: string
+          reviewed_at?: string | null
+          reviewed_by?: string | null
           started_at?: string | null
           students_present?: number | null
           submitted_by?: string | null
@@ -402,6 +410,10 @@ export type Database = {
           lesson_status?: string
           notes?: string | null
           report_date?: string
+          review_comment?: string | null
+          review_status?: string
+          reviewed_at?: string | null
+          reviewed_by?: string | null
           started_at?: string | null
           students_present?: number | null
           submitted_by?: string | null
@@ -415,6 +427,13 @@ export type Database = {
             columns: ["class_subject_id"]
             isOneToOne: false
             referencedRelation: "class_subjects"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "daily_teaching_reports_reviewed_by_fkey"
+            columns: ["reviewed_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
           {
@@ -652,7 +671,9 @@ export type Database = {
           email: string | null
           full_name: string
           id: string
+          must_change_password: boolean
           occupation: string | null
+          parent_portal_id: string | null
           phone: string
           profile_id: string | null
           relationship: Database["public"]["Enums"]["relationship_type"]
@@ -665,7 +686,9 @@ export type Database = {
           email?: string | null
           full_name: string
           id?: string
+          must_change_password?: boolean
           occupation?: string | null
+          parent_portal_id?: string | null
           phone: string
           profile_id?: string | null
           relationship?: Database["public"]["Enums"]["relationship_type"]
@@ -678,7 +701,9 @@ export type Database = {
           email?: string | null
           full_name?: string
           id?: string
+          must_change_password?: boolean
           occupation?: string | null
+          parent_portal_id?: string | null
           phone?: string
           profile_id?: string | null
           relationship?: Database["public"]["Enums"]["relationship_type"]
@@ -1472,6 +1497,7 @@ export type Database = {
           full_name: string
           gender: Database["public"]["Enums"]["gender_type"] | null
           id: string
+          must_change_password: boolean
           passport_url: string | null
           phone: string
           profile_id: string | null
@@ -1490,6 +1516,7 @@ export type Database = {
           full_name: string
           gender?: Database["public"]["Enums"]["gender_type"] | null
           id?: string
+          must_change_password?: boolean
           passport_url?: string | null
           phone: string
           profile_id?: string | null
@@ -1508,6 +1535,7 @@ export type Database = {
           full_name?: string
           gender?: Database["public"]["Enums"]["gender_type"] | null
           id?: string
+          must_change_password?: boolean
           passport_url?: string | null
           phone?: string
           profile_id?: string | null
@@ -1647,6 +1675,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      generate_parent_portal_id: { Args: never; Returns: string }
       has_any_role: { Args: { required_roles: string[] }; Returns: boolean }
       has_role: { Args: { required_role: string }; Returns: boolean }
       register_student: {

@@ -132,6 +132,80 @@ export async function saveStudentAttendanceAction(
       };
     }
 
+    // Teachers may only record attendance for classes
+    // they are actually assigned to teach.
+    if (role === "teacher") {
+      const {
+        data: teacher,
+        error: teacherError,
+      } = await admin
+        .from("teachers")
+        .select("id")
+        .eq("profile_id", user.id)
+        .eq("status", "active")
+        .maybeSingle();
+
+      if (teacherError || !teacher) {
+        return {
+          success: false,
+          message:
+            teacherError?.message ??
+            "Your teacher account could not be found.",
+          savedCount: 0,
+        };
+      }
+
+      const {
+        data: teacherAssignments,
+        error: assignmentError,
+      } = await admin
+        .from("teacher_assignments")
+        .select(`
+          id,
+          class_subjects!inner (
+            id,
+            class_id,
+            academic_session_id
+          )
+        `)
+        .eq("teacher_id", teacher.id);
+
+      if (assignmentError) {
+        return {
+          success: false,
+          message: assignmentError.message,
+          savedCount: 0,
+        };
+      }
+
+      const canAccessClass =
+        teacherAssignments?.some((assignment) => {
+          const relation =
+            assignment.class_subjects;
+
+          const classSubject = Array.isArray(
+            relation,
+          )
+            ? relation[0]
+            : relation;
+
+          return (
+            classSubject?.class_id === classId &&
+            classSubject?.academic_session_id ===
+              currentSession.id
+          );
+        }) ?? false;
+
+      if (!canAccessClass) {
+        return {
+          success: false,
+          message:
+            "You are not assigned to teach this class.",
+          savedCount: 0,
+        };
+      }
+    }
+
     const {
       data: validEnrollments,
       error: enrollmentError,
@@ -223,6 +297,8 @@ export async function saveStudentAttendanceAction(
     }
 
     revalidatePath("/attendance");
+    revalidatePath("/teacher/attendance");
+    revalidatePath("/teacher");
     revalidatePath("/students");
     revalidatePath(`/classes/${classId}`);
     revalidatePath("/dashboard/principal");

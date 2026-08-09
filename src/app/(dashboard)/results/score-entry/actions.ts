@@ -125,6 +125,40 @@ export async function saveScoresAction(
 
     const admin = createAdminClient();
 
+    if (role === "teacher") {
+      const {
+        data: loggedInTeacher,
+        error: loggedInTeacherError,
+      } = await admin
+        .from("teachers")
+        .select("id")
+        .eq("profile_id", user.id)
+        .eq("status", "active")
+        .maybeSingle();
+
+      if (
+        loggedInTeacherError ||
+        !loggedInTeacher
+      ) {
+        return {
+          success: false,
+          message:
+            loggedInTeacherError?.message ??
+            "Your teacher account could not be found.",
+          savedCount: 0,
+        };
+      }
+
+      if (loggedInTeacher.id !== teacherId) {
+        return {
+          success: false,
+          message:
+            "You cannot enter scores for another teacher.",
+          savedCount: 0,
+        };
+      }
+    }
+
     const [
       { data: assignment, error: assignmentError },
       { data: term, error: termError },
@@ -466,6 +500,8 @@ export async function saveScoresAction(
 
     revalidatePath("/results");
     revalidatePath("/results/score-entry");
+    revalidatePath("/teacher/scores");
+    revalidatePath("/teacher");
     revalidatePath(`/teachers/${teacherId}`);
     revalidatePath(
       `/classes/${classSubject.class_id}`,

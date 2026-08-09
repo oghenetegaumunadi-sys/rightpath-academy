@@ -33,10 +33,10 @@ export function LoginForm() {
 
       <div>
         <label
-          htmlFor="email"
+          htmlFor="identifier"
           className="mb-2 block text-sm font-semibold text-slate-700"
         >
-          Email address
+          Staff ID, Parent ID or Email
         </label>
 
         <div className="relative">
@@ -46,12 +46,12 @@ export function LoginForm() {
           />
 
           <input
-            id="email"
-            name="email"
-            type="email"
-            autoComplete="email"
+            id="identifier"
+            name="identifier"
+            type="text"
+            autoComplete="username"
             required
-            placeholder="name@rightpathacademy.com"
+            placeholder="RPA/STF/0001, RPA/PAR/0001 or email"
             className="w-full rounded-xl border border-slate-200 bg-white py-3.5 pl-12 pr-4 text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-green-600 focus:ring-4 focus:ring-green-100"
           />
         </div>

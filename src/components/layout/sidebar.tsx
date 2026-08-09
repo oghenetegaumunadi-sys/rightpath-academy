@@ -19,6 +19,7 @@ import {
 } from "lucide-react";
 
 import { SchoolLogo } from "@/components/branding/school-logo";
+import { SignOutButton } from "@/components/auth/sign-out-button";
 
 type SidebarProps = {
   mobileOpen?: boolean;
@@ -155,7 +156,9 @@ function SidebarContent({
       </nav>
 
       <div className="border-t border-white/10 p-4">
-        <div className="rounded-2xl bg-white/10 p-4">
+        <SignOutButton />
+
+        <div className="mt-3 rounded-2xl bg-white/10 p-4">
           <p className="text-sm font-bold text-white">
             RightPath Academy
           </p>

@@ -92,7 +92,9 @@ export default async function StudentProfilePage({
           phone,
           email,
           address,
-          occupation
+          occupation,
+          profile_id,
+          parent_portal_id
         )
       )
     `)
@@ -353,6 +355,55 @@ export default async function StudentProfilePage({
                 label="Address"
                 value={guardian.address}
               />
+
+              <div className="border-t border-slate-100 pt-5">
+                {guardian.profile_id &&
+                guardian.parent_portal_id ? (
+                  <div className="rounded-xl border border-green-200 bg-green-50 p-4">
+                    <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
+                      <div>
+                        <p className="text-sm font-semibold text-green-950">
+                          Parent Portal Active
+                        </p>
+
+                        <p className="mt-1 text-xs text-green-700">
+                          Parent ID
+                        </p>
+
+                        <p className="mt-1 font-mono font-bold text-green-950">
+                          {guardian.parent_portal_id}
+                        </p>
+                      </div>
+
+                      <Link
+                        href={`/parents/${guardian.id}/portal`}
+                        className="inline-flex items-center justify-center rounded-xl border border-green-300 bg-white px-4 py-2.5 text-sm font-semibold text-green-800 transition hover:bg-green-100"
+                      >
+                        Manage Portal
+                      </Link>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="rounded-xl border border-amber-200 bg-amber-50 p-4">
+                    <p className="text-sm font-semibold text-amber-950">
+                      Parent Portal Not Activated
+                    </p>
+
+                    <p className="mt-1 text-xs leading-5 text-amber-800">
+                      Create login credentials for this parent to access
+                      their children&apos;s attendance, results and school
+                      announcements.
+                    </p>
+
+                    <Link
+                      href={`/parents/${guardian.id}/portal`}
+                      className="mt-4 inline-flex items-center justify-center rounded-xl bg-green-700 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-green-800"
+                    >
+                      Activate Parent Portal
+                    </Link>
+                  </div>
+                )}
+              </div>
             </div>
           ) : (
             <p className="mt-6 text-sm text-slate-500">

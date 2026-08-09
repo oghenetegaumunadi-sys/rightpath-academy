@@ -74,6 +74,38 @@ export async function submitResultsAction(
 
     const admin = createAdminClient();
 
+    if (role === "teacher") {
+      const {
+        data: loggedInTeacher,
+        error: loggedInTeacherError,
+      } = await admin
+        .from("teachers")
+        .select("id")
+        .eq("profile_id", user.id)
+        .eq("status", "active")
+        .maybeSingle();
+
+      if (
+        loggedInTeacherError ||
+        !loggedInTeacher
+      ) {
+        return {
+          success: false,
+          message:
+            loggedInTeacherError?.message ??
+            "Your teacher account could not be found.",
+        };
+      }
+
+      if (loggedInTeacher.id !== teacherId) {
+        return {
+          success: false,
+          message:
+            "You cannot submit results for another teacher.",
+        };
+      }
+    }
+
     const {
       data: assessmentSheet,
       error: sheetError,
@@ -302,6 +334,8 @@ export async function submitResultsAction(
 
     revalidatePath("/results");
     revalidatePath("/results/score-entry");
+    revalidatePath("/teacher/scores");
+    revalidatePath("/teacher");
     revalidatePath("/results/review");
     revalidatePath(`/teachers/${teacherId}`);
     revalidatePath(
