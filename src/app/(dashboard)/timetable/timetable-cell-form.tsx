@@ -5,6 +5,7 @@ import {
   Save,
   Trash2,
 } from "lucide-react";
+import { useRouter } from "next/navigation";
 import {
   useActionState,
   useEffect,
@@ -55,6 +56,8 @@ export function TimetableCellForm({
   subjects,
   existingEntry,
 }: TimetableCellFormProps) {
+  const router = useRouter();
+
   const [
     state,
     formAction,
@@ -72,6 +75,8 @@ export function TimetableCellForm({
       toast.success(
         state.message,
       );
+
+      router.refresh();
     } else if (
       !state.success &&
       state.message
@@ -80,7 +85,7 @@ export function TimetableCellForm({
         state.message,
       );
     }
-  }, [state]);
+  }, [state, router]);
 
   return (
     <div className="min-w-52">

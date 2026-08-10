@@ -396,6 +396,128 @@ export default async function TimetablePage({
             </div>
           </Card>
 
+          {/* Mobile timetable editor */}
+          <div className="space-y-6 md:hidden">
+            {weekdays.map((day) => (
+              <Card
+                key={day.number}
+                className="overflow-hidden p-0"
+              >
+                <div className="bg-green-700 px-5 py-4 text-white">
+                  <h3 className="font-bold">
+                    {day.label}
+                  </h3>
+
+                  <p className="mt-1 text-xs text-green-100">
+                    Assign subjects to this day&apos;s periods
+                  </p>
+                </div>
+
+                <div className="divide-y divide-slate-100">
+                  {periods?.map(
+                    (period) => {
+                      if (
+                        !period.is_instructional
+                      ) {
+                        return (
+                          <div
+                            key={period.id}
+                            className={[
+                              "px-5 py-4",
+                              period.is_break
+                                ? "bg-amber-50"
+                                : "bg-green-50",
+                            ].join(" ")}
+                          >
+                            <div className="flex items-center justify-between gap-3">
+                              <div>
+                                <p className="font-semibold text-slate-800">
+                                  {
+                                    period.name
+                                  }
+                                </p>
+
+                                <p className="mt-1 text-xs text-slate-500">
+                                  {formatTime(
+                                    period.starts_at,
+                                  )}{" "}
+                                  –{" "}
+                                  {formatTime(
+                                    period.ends_at,
+                                  )}
+                                </p>
+                              </div>
+
+                              <Badge variant="neutral">
+                                Fixed
+                              </Badge>
+                            </div>
+                          </div>
+                        );
+                      }
+
+                      const existingEntry =
+                        entries.find(
+                          (entry) =>
+                            entry.periodId ===
+                              period.id &&
+                            entry.weekday ===
+                              day.number,
+                        ) ?? null;
+
+                      return (
+                        <div
+                          key={period.id}
+                          className="px-5 py-5"
+                        >
+                          <div className="mb-4 flex items-center justify-between gap-3">
+                            <div>
+                              <p className="font-semibold text-slate-900">
+                                {
+                                  period.name
+                                }
+                              </p>
+
+                              <p className="mt-1 text-xs text-slate-500">
+                                {formatTime(
+                                  period.starts_at,
+                                )}{" "}
+                                –{" "}
+                                {formatTime(
+                                  period.ends_at,
+                                )}
+                              </p>
+                            </div>
+                          </div>
+
+                          <TimetableCellForm
+                            classId={
+                              selectedClass.id
+                            }
+                            weekday={
+                              day.number
+                            }
+                            periodId={
+                              period.id
+                            }
+                            subjects={
+                              subjects
+                            }
+                            existingEntry={
+                              existingEntry
+                            }
+                          />
+                        </div>
+                      );
+                    },
+                  )}
+                </div>
+              </Card>
+            ))}
+          </div>
+
+          {/* Desktop timetable editor */}
+          <div className="hidden md:block">
           <Card className="overflow-hidden p-0">
             <div className="overflow-x-auto">
               <table className="w-full min-w-[1450px] text-left">
@@ -527,6 +649,7 @@ export default async function TimetablePage({
               </table>
             </div>
           </Card>
+          </div>
         </>
       ) : (
         <Card className="border-dashed py-16 text-center">

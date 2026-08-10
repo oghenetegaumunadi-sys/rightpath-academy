@@ -330,9 +330,11 @@ export async function saveTimetableEntryAction(
       };
     }
 
-    revalidatePath(
-      "/timetable",
-    );
+    revalidatePath("/timetable");
+    revalidatePath("/teacher");
+    revalidatePath("/teacher/timetable");
+    revalidatePath("/dashboard/admin");
+    revalidatePath("/dashboard/director");
 
     return {
       success: true,
@@ -403,7 +405,9 @@ export async function deleteTimetableEntryAction(
     .delete()
     .eq("id", entryId);
 
-  revalidatePath(
-    "/timetable",
-  );
+  revalidatePath("/timetable");
+  revalidatePath("/teacher");
+  revalidatePath("/teacher/timetable");
+  revalidatePath("/dashboard/admin");
+  revalidatePath("/dashboard/director");
 }

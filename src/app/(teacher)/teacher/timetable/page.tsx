@@ -257,6 +257,170 @@ export default async function TeacherTimetablePage() {
         </Card>
       ) : null}
 
+      {/* Mobile timetable */}
+      <div className="space-y-6 md:hidden">
+        {weekdays.map((day) => {
+          const dayEntries =
+            entries.filter(
+              (entry) =>
+                entry.weekday ===
+                day.number,
+            );
+
+          return (
+            <Card
+              key={day.number}
+              className="overflow-hidden p-0"
+            >
+              <div className="border-b border-slate-200 bg-green-700 px-5 py-4 text-white">
+                <h2 className="font-bold">
+                  {day.label}
+                </h2>
+
+                <p className="mt-1 text-xs text-green-100">
+                  {
+                    dayEntries.length
+                  }{" "}
+                  teaching period
+                  {dayEntries.length === 1
+                    ? ""
+                    : "s"}
+                </p>
+              </div>
+
+              <div className="divide-y divide-slate-100">
+                {periods?.map(
+                  (period) => {
+                    if (
+                      !period.is_instructional
+                    ) {
+                      return (
+                        <div
+                          key={period.id}
+                          className={[
+                            "px-5 py-4",
+                            period.is_break
+                              ? "bg-amber-50"
+                              : "bg-green-50",
+                          ].join(" ")}
+                        >
+                          <div className="flex items-center justify-between gap-3">
+                            <div>
+                              <p className="font-semibold text-slate-800">
+                                {
+                                  period.name
+                                }
+                              </p>
+
+                              <p className="mt-1 text-xs text-slate-500">
+                                {formatTime(
+                                  period.starts_at,
+                                )}{" "}
+                                –{" "}
+                                {formatTime(
+                                  period.ends_at,
+                                )}
+                              </p>
+                            </div>
+
+                            <Badge variant="neutral">
+                              School Activity
+                            </Badge>
+                          </div>
+                        </div>
+                      );
+                    }
+
+                    const entry =
+                      entries.find(
+                        (item) =>
+                          item.periodId ===
+                            period.id &&
+                          item.weekday ===
+                            day.number,
+                      ) ?? null;
+
+                    return (
+                      <div
+                        key={period.id}
+                        className="px-5 py-4"
+                      >
+                        <div className="flex items-start gap-4">
+                          <div className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-slate-100 text-slate-600">
+                            <Clock3 className="size-4" />
+                          </div>
+
+                          <div className="min-w-0 flex-1">
+                            <div className="flex flex-wrap items-center justify-between gap-2">
+                              <div>
+                                <p className="text-xs font-bold uppercase tracking-wide text-slate-400">
+                                  {
+                                    period.name
+                                  }
+                                </p>
+
+                                <p className="mt-1 text-xs text-slate-500">
+                                  {formatTime(
+                                    period.starts_at,
+                                  )}{" "}
+                                  –{" "}
+                                  {formatTime(
+                                    period.ends_at,
+                                  )}
+                                </p>
+                              </div>
+
+                              {entry ? (
+                                <Badge variant="success">
+                                  {
+                                    entry.className
+                                  }
+                                </Badge>
+                              ) : null}
+                            </div>
+
+                            {entry ? (
+                              <div className="mt-3 rounded-xl border border-green-200 bg-green-50 p-4">
+                                <p className="font-semibold text-green-950">
+                                  {
+                                    entry.subjectName
+                                  }
+                                </p>
+
+                                <p className="mt-1 text-xs font-semibold text-green-700">
+                                  {
+                                    entry.subjectCode
+                                  }
+                                </p>
+
+                                {entry.room ? (
+                                  <p className="mt-2 text-xs text-green-800">
+                                    Room:{" "}
+                                    {
+                                      entry.room
+                                    }
+                                  </p>
+                                ) : null}
+                              </div>
+                            ) : (
+                              <p className="mt-3 text-sm text-slate-400">
+                                No lesson assigned
+                              </p>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  },
+                )}
+              </div>
+            </Card>
+          );
+        })}
+      </div>
+
+      {/* Desktop timetable */}
+      <div className="hidden md:block">
       <Card className="overflow-hidden p-0">
         <div className="overflow-x-auto">
           <table className="w-full min-w-[1350px] text-left">
@@ -394,6 +558,8 @@ export default async function TeacherTimetablePage() {
           </table>
         </div>
       </Card>
+
+      </div>
 
       {!entries.length ? (
         <Card className="border-dashed py-12 text-center">

@@ -17,6 +17,8 @@ import { Badge, Card } from "@/components/ui";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
 
+export const dynamic = "force-dynamic";
+
 export default async function TeacherDashboardPage() {
   const supabase = await createClient();
 
