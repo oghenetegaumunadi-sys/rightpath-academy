@@ -6,7 +6,10 @@ export async function ensureUserRole(
 ) {
   const admin = createAdminClient();
 
-  const { data: existingRole, error: roleError } = await admin
+  const {
+    data: existingRole,
+    error: roleError,
+  } = await admin
     .from("profile_roles")
     .select(`
       role_id,
@@ -25,16 +28,21 @@ export async function ensureUserRole(
   }
 
   if (existingRole) {
-    const relation = existingRole.roles;
+    const relation =
+      existingRole.roles;
 
-    const roleName = Array.isArray(relation)
-      ? relation[0]?.name
-      : relation?.name;
+    const roleName =
+      Array.isArray(relation)
+        ? relation[0]?.name
+        : relation?.name;
 
     return roleName ?? null;
   }
 
-  const { count, error: countError } = await admin
+  const {
+    count,
+    error: countError,
+  } = await admin
     .from("profile_roles")
     .select("*", {
       count: "exact",
@@ -47,17 +55,32 @@ export async function ensureUserRole(
     );
   }
 
+  /*
+   * Bootstrap rule:
+   *
+   * Only when absolutely no role assignment exists
+   * in the entire system may the first authenticated
+   * account become School Director automatically.
+   *
+   * Once the system has any assigned user roles,
+   * unassigned accounts must be provisioned by an
+   * authorized administrator.
+   */
   if ((count ?? 0) > 0) {
     return null;
   }
 
-  const { data: profile, error: profileError } = await admin
+  const {
+    data: profile,
+    error: profileError,
+  } = await admin
     .from("profiles")
     .upsert(
       {
         id: userId,
         email,
-        full_name: email.split("@")[0],
+        full_name:
+          email.split("@")[0],
         status: "active",
       },
       {
@@ -73,33 +96,43 @@ export async function ensureUserRole(
     );
   }
 
-  const { data: principalRole, error: principalError } =
-    await admin
-      .from("roles")
-      .select("id")
-      .eq("name", "principal")
-      .single();
+  const {
+    data: directorRole,
+    error: directorError,
+  } = await admin
+    .from("roles")
+    .select("id")
+    .eq("name", "director")
+    .single();
 
-  if (principalError || !principalRole) {
+  if (
+    directorError ||
+    !directorRole
+  ) {
     throw new Error(
-      principalError?.message ??
-        "Principal role is missing from the database.",
+      directorError?.message ??
+        "School Director role is missing from the database.",
     );
   }
 
-  const { error: assignmentError } = await admin
+  const {
+    error: assignmentError,
+  } = await admin
     .from("profile_roles")
     .insert({
-      profile_id: profile.id,
-      role_id: principalRole.id,
-      assigned_by: userId,
+      profile_id:
+        profile.id,
+      role_id:
+        directorRole.id,
+      assigned_by:
+        userId,
     });
 
   if (assignmentError) {
     throw new Error(
-      `Unable to assign Principal role: ${assignmentError.message}`,
+      `Unable to assign School Director role: ${assignmentError.message}`,
     );
   }
 
-  return "principal";
+  return "director";
 }

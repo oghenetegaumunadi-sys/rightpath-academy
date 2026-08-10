@@ -31,7 +31,7 @@ export default async function PrincipalDashboardPage() {
   const displayName =
     user.user_metadata?.full_name ||
     user.email?.split("@")[0] ||
-    "School Administrator";
+    "School Director";
 
   const today = getLagosDate();
 
@@ -417,7 +417,7 @@ export default async function PrincipalDashboardPage() {
             </h1>
 
             <p className="mt-3 max-w-2xl text-sm leading-6 text-green-100">
-              Daily operational overview of students, staff, attendance, results, teaching reports and school administration.
+              Executive overview of school operations, students, staff, attendance, results and academic activity.
             </p>
           </div>
 
@@ -588,8 +588,8 @@ export default async function PrincipalDashboardPage() {
       </section>
 
       <SectionCard
-        title="Daily Operations"
-        description="Items requiring School Admin attention today"
+        title="Needs Attention Today"
+        description="Operational items that may require follow-up"
       >
         <div className="grid gap-4 md:grid-cols-2">
           <AttentionItem

@@ -26,6 +26,13 @@ export default async function InviteUserPage() {
       display_name,
       description
     `)
+    .in("name", [
+      "director",
+      "school_admin",
+      "head_teacher",
+      "teacher",
+      "parent",
+    ])
     .order("display_name");
 
   if (error) {

@@ -94,6 +94,10 @@ export async function inviteUserAction(
     if (
       !currentRole ||
       ![
+        "director",
+        "school_admin",
+
+        // Legacy roles retained temporarily
         "principal",
         "vice_principal",
         "admin",
@@ -133,6 +137,48 @@ export async function inviteUserAction(
         success: false,
         message:
           "One or more selected roles are invalid.",
+        invitedUserId: null,
+      };
+    }
+
+
+    const selectedRoleNames =
+      validRoles.map((role) => role.name);
+
+    /*
+     * School hierarchy rules:
+     *
+     * - Only the School Director may create another
+     *   Director or School Administrator.
+     *
+     * - School Admin may later create operational
+     *   accounts such as Head Teachers and Teachers.
+     *
+     * Legacy Principal retains Director authority
+     * temporarily during migration.
+     */
+    const hasExecutiveRole =
+      selectedRoleNames.some((roleName) =>
+        [
+          "director",
+          "school_admin",
+        ].includes(roleName),
+      );
+
+    const hasDirectorAuthority =
+      [
+        "director",
+        "principal",
+      ].includes(currentRole);
+
+    if (
+      hasExecutiveRole &&
+      !hasDirectorAuthority
+    ) {
+      return {
+        success: false,
+        message:
+          "Only the School Director can create Director or School Administrator accounts.",
         invitedUserId: null,
       };
     }
