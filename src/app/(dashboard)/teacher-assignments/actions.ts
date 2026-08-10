@@ -70,6 +70,10 @@ export async function assignTeacherSubjectsAction(
     if (
       !role ||
       ![
+        "director",
+        "school_admin",
+
+        // Legacy roles retained during migration
         "principal",
         "vice_principal",
         "admin",
@@ -225,6 +229,9 @@ export async function assignTeacherSubjectsAction(
     revalidatePath("/teacher-assignments");
     revalidatePath(`/teachers/${teacherId}`);
     revalidatePath("/subjects");
+    revalidatePath("/timetable");
+    revalidatePath("/dashboard/admin");
+    revalidatePath("/dashboard/director");
     revalidatePath("/dashboard/principal");
 
     return {

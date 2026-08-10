@@ -146,6 +146,150 @@ export default async function TeacherDashboardPage() {
       .eq("teacher_id", teacher.id),
   ]);
 
+  const todayWeekday =
+    new Date(
+      `${today}T12:00:00+01:00`,
+    ).getUTCDay();
+
+  let todaySchedule: {
+    id: string;
+    periodName: string;
+    periodNumber: number;
+    startsAt: string;
+    endsAt: string;
+    className: string;
+    subjectName: string;
+    subjectCode: string;
+    room: string | null;
+  }[] = [];
+
+  if (
+    currentTerm &&
+    todayWeekday >= 1 &&
+    todayWeekday <= 5
+  ) {
+    const {
+      data: timetableRows,
+      error: timetableError,
+    } = await admin
+      .from("timetable_entries")
+      .select(`
+        id,
+        room,
+        weekday,
+        school_periods (
+          id,
+          name,
+          period_number,
+          starts_at,
+          ends_at,
+          is_instructional
+        ),
+        classes (
+          id,
+          name
+        ),
+        class_subjects (
+          id,
+          subjects (
+            id,
+            name,
+            code
+          )
+        )
+      `)
+      .eq("teacher_id", teacher.id)
+      .eq("term_id", currentTerm.id)
+      .eq(
+        "academic_session_id",
+        currentTerm.academic_session_id,
+      )
+      .eq("weekday", todayWeekday);
+
+    if (timetableError) {
+      console.error(
+        "Unable to load today's teacher timetable:",
+        timetableError,
+      );
+    }
+
+    todaySchedule =
+      timetableRows
+        ?.map((row) => {
+          const periodRelation =
+            row.school_periods;
+
+          const period =
+            Array.isArray(periodRelation)
+              ? periodRelation[0]
+              : periodRelation;
+
+          const classRelation =
+            row.classes;
+
+          const schoolClass =
+            Array.isArray(classRelation)
+              ? classRelation[0]
+              : classRelation;
+
+          const classSubjectRelation =
+            row.class_subjects;
+
+          const classSubject =
+            Array.isArray(classSubjectRelation)
+              ? classSubjectRelation[0]
+              : classSubjectRelation;
+
+          const subjectRelation =
+            classSubject?.subjects;
+
+          const subject =
+            Array.isArray(subjectRelation)
+              ? subjectRelation[0]
+              : subjectRelation;
+
+          if (
+            !period ||
+            !period.is_instructional ||
+            !schoolClass ||
+            !subject
+          ) {
+            return null;
+          }
+
+          return {
+            id: row.id,
+            periodName: period.name,
+            periodNumber:
+              period.period_number,
+            startsAt:
+              period.starts_at,
+            endsAt:
+              period.ends_at,
+            className:
+              schoolClass.name,
+            subjectName:
+              subject.name,
+            subjectCode:
+              subject.code,
+            room:
+              row.room,
+          };
+        })
+        .filter(
+          (
+            entry,
+          ): entry is NonNullable<
+            typeof entry
+          > => Boolean(entry),
+        )
+        .sort(
+          (a, b) =>
+            a.periodNumber -
+            b.periodNumber,
+        ) ?? [];
+  }
+
   const assignments =
     assignmentRows
       ?.map((assignment) => {
@@ -349,6 +493,115 @@ export default async function TeacherDashboardPage() {
           {teacher.employee_id}
         </Badge>
       </section>
+
+      <Card>
+        <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
+          <div>
+            <div className="flex items-center gap-3">
+              <div className="flex size-11 items-center justify-center rounded-xl bg-green-100 text-green-700">
+                <Clock3 className="size-5" />
+              </div>
+
+              <div>
+                <h2 className="text-lg font-semibold text-slate-950">
+                  Today&apos;s Schedule
+                </h2>
+
+                <p className="mt-1 text-sm text-slate-500">
+                  Your teaching periods for today.
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <Link
+            href="/teacher/timetable"
+            className="inline-flex items-center gap-2 text-sm font-semibold text-green-700 transition hover:text-green-800"
+          >
+            Full Timetable
+            <ArrowRight className="size-4" />
+          </Link>
+        </div>
+
+        {todayWeekday >= 1 &&
+        todayWeekday <= 5 ? (
+          todaySchedule.length ? (
+            <div className="mt-6 divide-y divide-slate-100">
+              {todaySchedule.map(
+                (entry) => (
+                  <div
+                    key={entry.id}
+                    className="flex flex-col gap-4 py-4 first:pt-0 last:pb-0 sm:flex-row sm:items-center sm:justify-between"
+                  >
+                    <div className="flex min-w-0 items-start gap-4">
+                      <div className="min-w-28">
+                        <p className="font-semibold text-slate-900">
+                          {formatTimetableTime(
+                            entry.startsAt,
+                          )}
+                        </p>
+
+                        <p className="mt-1 text-xs text-slate-500">
+                          {formatTimetableTime(
+                            entry.endsAt,
+                          )}
+                        </p>
+                      </div>
+
+                      <div className="min-w-0">
+                        <div className="flex flex-wrap items-center gap-2">
+                          <p className="font-semibold text-slate-950">
+                            {entry.subjectName}
+                          </p>
+
+                          <Badge variant="info">
+                            {entry.subjectCode}
+                          </Badge>
+                        </div>
+
+                        <p className="mt-1 text-sm text-slate-500">
+                          {entry.className}
+                          {entry.room
+                            ? ` · ${entry.room}`
+                            : ""}
+                        </p>
+                      </div>
+                    </div>
+
+                    <Badge variant="neutral">
+                      {entry.periodName}
+                    </Badge>
+                  </div>
+                ),
+              )}
+            </div>
+          ) : (
+            <div className="mt-6 rounded-xl border border-dashed border-slate-200 bg-slate-50 px-5 py-8 text-center">
+              <CheckCircle2 className="mx-auto size-9 text-green-600" />
+
+              <p className="mt-3 font-semibold text-slate-900">
+                No lessons assigned today
+              </p>
+
+              <p className="mt-1 text-sm text-slate-500">
+                You currently have no teaching periods on today&apos;s timetable.
+              </p>
+            </div>
+          )
+        ) : (
+          <div className="mt-6 rounded-xl border border-dashed border-slate-200 bg-slate-50 px-5 py-8 text-center">
+            <CalendarCheck className="mx-auto size-9 text-slate-400" />
+
+            <p className="mt-3 font-semibold text-slate-900">
+              No regular timetable today
+            </p>
+
+            <p className="mt-1 text-sm text-slate-500">
+              The weekly school timetable runs from Monday to Friday.
+            </p>
+          </div>
+        )}
+      </Card>
 
       {needsAttentionCount > 0 ? (
         <Link
@@ -724,4 +977,32 @@ function formatDisplayDate(value: string) {
   }).format(
     new Date(`${value}T00:00:00`),
   );
+}
+
+
+function formatTimetableTime(
+  value: string,
+) {
+  const [
+    hourString,
+    minute,
+  ] = value.split(":");
+
+  const date = new Date();
+
+  date.setHours(
+    Number(hourString),
+    Number(minute),
+    0,
+    0,
+  );
+
+  return new Intl.DateTimeFormat(
+    "en-NG",
+    {
+      hour: "numeric",
+      minute: "2-digit",
+      hour12: true,
+    },
+  ).format(date);
 }

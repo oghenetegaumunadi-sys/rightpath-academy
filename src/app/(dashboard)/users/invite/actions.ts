@@ -1,5 +1,6 @@
 "use server";
 
+import { randomBytes } from "crypto";
 import { revalidatePath } from "next/cache";
 
 import { ensureUserRole } from "@/lib/auth/ensure-user-role";
@@ -10,7 +11,12 @@ export type InviteUserState = {
   success: boolean;
   message: string | null;
   invitedUserId: string | null;
+  temporaryPassword: string | null;
 };
+
+function generateTemporaryPassword() {
+  return `RAS-${randomBytes(6).toString("base64url")}!`;
+}
 
 export async function inviteUserAction(
   _previousState: InviteUserState,
@@ -46,6 +52,7 @@ export async function inviteUserAction(
         message:
           "Enter the user's full name.",
         invitedUserId: null,
+        temporaryPassword: null,
       };
     }
 
@@ -58,6 +65,7 @@ export async function inviteUserAction(
         message:
           "Enter a valid email address.",
         invitedUserId: null,
+        temporaryPassword: null,
       };
     }
 
@@ -67,6 +75,7 @@ export async function inviteUserAction(
         message:
           "Assign at least one role.",
         invitedUserId: null,
+        temporaryPassword: null,
       };
     }
 
@@ -83,6 +92,7 @@ export async function inviteUserAction(
         message:
           "Your session has expired. Please sign in again.",
         invitedUserId: null,
+        temporaryPassword: null,
       };
     }
 
@@ -95,19 +105,17 @@ export async function inviteUserAction(
       !currentRole ||
       ![
         "director",
-        "school_admin",
 
-        // Legacy roles retained temporarily
+        // Legacy authority during migration
         "principal",
-        "vice_principal",
-        "admin",
       ].includes(currentRole)
     ) {
       return {
         success: false,
         message:
-          "Your account cannot invite users.",
+          "Only the School Director can create administrative accounts.",
         invitedUserId: null,
+        temporaryPassword: null,
       };
     }
 
@@ -118,7 +126,11 @@ export async function inviteUserAction(
       error: rolesError,
     } = await admin
       .from("roles")
-      .select("id, name, display_name")
+      .select(`
+        id,
+        name,
+        display_name
+      `)
       .in("id", roleIds);
 
     if (rolesError) {
@@ -126,6 +138,7 @@ export async function inviteUserAction(
         success: false,
         message: rolesError.message,
         invitedUserId: null,
+        temporaryPassword: null,
       };
     }
 
@@ -138,87 +151,70 @@ export async function inviteUserAction(
         message:
           "One or more selected roles are invalid.",
         invitedUserId: null,
+        temporaryPassword: null,
       };
     }
 
-
     const selectedRoleNames =
-      validRoles.map((role) => role.name);
-
-    /*
-     * School hierarchy rules:
-     *
-     * - Only the School Director may create another
-     *   Director or School Administrator.
-     *
-     * - School Admin may later create operational
-     *   accounts such as Head Teachers and Teachers.
-     *
-     * Legacy Principal retains Director authority
-     * temporarily during migration.
-     */
-    const hasExecutiveRole =
-      selectedRoleNames.some((roleName) =>
-        [
-          "director",
-          "school_admin",
-        ].includes(roleName),
+      validRoles.map(
+        (role) => role.name,
       );
 
-    const hasDirectorAuthority =
-      [
-        "director",
-        "principal",
-      ].includes(currentRole);
+    const allowedCreatedRoles = [
+      "school_admin",
+      "head_teacher",
+      "teacher",
+      "parent",
+    ];
 
     if (
-      hasExecutiveRole &&
-      !hasDirectorAuthority
+      selectedRoleNames.some(
+        (role) =>
+          !allowedCreatedRoles.includes(role),
+      )
     ) {
       return {
         success: false,
         message:
-          "Only the School Director can create Director or School Administrator accounts.",
+          "One or more selected roles cannot be created from this screen.",
         invitedUserId: null,
+        temporaryPassword: null,
       };
     }
 
-    const siteUrl =
-      process.env.NEXT_PUBLIC_SITE_URL?.replace(
-        /\/$/,
-        "",
-      ) ?? "";
-
-    const redirectTo = siteUrl
-      ? `${siteUrl}/login`
-      : undefined;
+    const temporaryPassword =
+      generateTemporaryPassword();
 
     const {
-      data: inviteData,
-      error: inviteError,
-    } =
-      await admin.auth.admin.inviteUserByEmail(
-        email,
-        {
-          data: {
-            full_name: fullName,
-            phone,
-          },
-          redirectTo,
-        },
-      );
+      data: authData,
+      error: createError,
+    } = await admin.auth.admin.createUser({
+      email,
+      password: temporaryPassword,
+      email_confirm: true,
+      user_metadata: {
+        full_name: fullName,
+        phone,
+        must_change_password: true,
+      },
+    });
 
-    if (inviteError || !inviteData.user) {
+    if (
+      createError ||
+      !authData.user
+    ) {
       return {
         success: false,
         message:
-          inviteError?.message ??
-          "The invitation could not be sent.",
+          createError?.message ??
+          "The user account could not be created.",
         invitedUserId: null,
+        temporaryPassword: null,
       };
     }
 
-    const invitedUser = inviteData.user;
+    const createdUser =
+      authData.user;
 
     const {
       error: profileError,
@@ -226,12 +222,13 @@ export async function inviteUserAction(
       .from("profiles")
       .upsert(
         {
-          id: invitedUser.id,
+          id: createdUser.id,
           email,
           full_name: fullName,
           phone,
           status: "active",
-          updated_at: new Date().toISOString(),
+          updated_at:
+            new Date().toISOString(),
         },
         {
           onConflict: "id",
@@ -239,21 +236,16 @@ export async function inviteUserAction(
       );
 
     if (profileError) {
-      console.error(
-        "Invitation sent but profile creation failed:",
-        {
-          message: profileError.message,
-          code: profileError.code,
-          details: profileError.details,
-          hint: profileError.hint,
-        },
+      await admin.auth.admin.deleteUser(
+        createdUser.id,
       );
 
       return {
         success: false,
         message:
-          "The invitation email was sent, but the user profile could not be completed. Open User Management and repair the account.",
-        invitedUserId: invitedUser.id,
+          `Unable to create the user profile: ${profileError.message}`,
+        invitedUserId: null,
+        temporaryPassword: null,
       };
     }
 
@@ -263,48 +255,59 @@ export async function inviteUserAction(
       .from("profile_roles")
       .upsert(
         roleIds.map((roleId) => ({
-          profile_id: invitedUser.id,
-          role_id: roleId,
-          assigned_by: currentUser.id,
+          profile_id:
+            createdUser.id,
+          role_id:
+            roleId,
+          assigned_by:
+            currentUser.id,
         })),
         {
-          onConflict: "profile_id,role_id",
+          onConflict:
+            "profile_id,role_id",
           ignoreDuplicates: true,
         },
       );
 
     if (roleInsertError) {
-      console.error(
-        "Invitation sent but role assignment failed:",
-        {
-          message: roleInsertError.message,
-          code: roleInsertError.code,
-          details: roleInsertError.details,
-          hint: roleInsertError.hint,
-        },
+      await admin
+        .from("profiles")
+        .delete()
+        .eq(
+          "id",
+          createdUser.id,
+        );
+
+      await admin.auth.admin.deleteUser(
+        createdUser.id,
       );
 
       return {
         success: false,
         message:
-          "The invitation email was sent, but the roles could not be assigned. Open the user account and assign roles manually.",
-        invitedUserId: invitedUser.id,
+          `Unable to assign the user's role: ${roleInsertError.message}`,
+        invitedUserId: null,
+        temporaryPassword: null,
       };
     }
 
     revalidatePath("/users");
-    revalidatePath(`/users/${invitedUser.id}`);
+    revalidatePath(
+      `/users/${createdUser.id}`,
+    );
     revalidatePath("/settings");
 
     return {
       success: true,
       message:
-        `Invitation sent to ${email}.`,
-      invitedUserId: invitedUser.id,
+        "User account created successfully.",
+      invitedUserId:
+        createdUser.id,
+      temporaryPassword,
     };
   } catch (error) {
     console.error(
-      "Unexpected user invitation error:",
+      "Unexpected user creation error:",
       error,
     );
 
@@ -313,8 +316,9 @@ export async function inviteUserAction(
       message:
         error instanceof Error
           ? error.message
-          : "An unexpected invitation error occurred.",
+          : "An unexpected user creation error occurred.",
       invitedUserId: null,
+      temporaryPassword: null,
     };
   }
 }

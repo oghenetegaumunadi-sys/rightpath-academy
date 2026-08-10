@@ -6,6 +6,7 @@ import {
   BarChart3,
   BookOpen,
   CalendarCheck,
+  CalendarDays,
   ClipboardPenLine,
   LayoutDashboard,
   UserRound,
@@ -24,6 +25,11 @@ const navigation = [
     label: "My Classes",
     href: "/teacher/classes",
     icon: BookOpen,
+  },
+  {
+    label: "My Timetable",
+    href: "/teacher/timetable",
+    icon: CalendarDays,
   },
   {
     label: "Take Attendance",

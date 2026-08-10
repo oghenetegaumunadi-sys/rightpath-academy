@@ -163,6 +163,14 @@ export async function loginAction(
     data.user.id,
   );
 
+
+  if (
+    data.user.user_metadata
+      ?.must_change_password === true
+  ) {
+    redirect("/change-password");
+  }
+
   if (
     role === "teacher" ||
     role === "parent"

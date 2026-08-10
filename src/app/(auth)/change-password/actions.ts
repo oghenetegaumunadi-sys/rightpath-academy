@@ -70,7 +70,9 @@ export async function changePasswordAction(
 
   if (
     role !== "teacher" &&
-    role !== "parent"
+    role !== "parent" &&
+    role !== "school_admin" &&
+    role !== "head_teacher"
   ) {
     return {
       error:
@@ -166,6 +168,9 @@ export async function changePasswordAction(
   } =
     await supabase.auth.updateUser({
       password,
+      data: {
+        must_change_password: false,
+      },
     });
 
   if (passwordError) {

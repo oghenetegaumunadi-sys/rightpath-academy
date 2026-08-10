@@ -6,6 +6,7 @@ import {
   BarChart3,
   BookOpen,
   CalendarCheck,
+  CalendarDays,
   ClipboardList,
   FileText,
   LayoutDashboard,
@@ -29,7 +30,7 @@ type SidebarProps = {
 const navigation = [
   {
     label: "Dashboard",
-    href: "/dashboard/principal",
+    href: "/dashboard/admin",
     icon: LayoutDashboard,
   },
   {
@@ -51,6 +52,11 @@ const navigation = [
     label: "Subjects",
     href: "/subjects",
     icon: ClipboardList,
+  },
+  {
+    label: "Timetable",
+    href: "/timetable",
+    icon: CalendarDays,
   },
   {
     label: "Attendance",
@@ -107,7 +113,7 @@ function SidebarContent({
         <SchoolLogo
           size="md"
           inverse
-          href="/dashboard/principal"
+          href="/dashboard/admin"
           priority
         />
       </div>

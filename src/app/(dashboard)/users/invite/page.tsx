@@ -12,7 +12,7 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { InviteUserForm } from "./invite-user-form";
 
 export const metadata: Metadata = {
-  title: "Invite User",
+  title: "Create User Account",
 };
 
 export default async function InviteUserPage() {
@@ -62,11 +62,11 @@ export default async function InviteUserPage() {
 
           <div>
             <h1 className="text-3xl font-bold tracking-tight text-slate-950">
-              Invite User
+              Create User Account
             </h1>
 
             <p className="mt-2 max-w-2xl text-slate-600">
-              Send a secure invitation and assign the user’s roles.
+              Create a school account, assign its role and issue temporary login credentials.
             </p>
           </div>
         </div>
@@ -78,11 +78,11 @@ export default async function InviteUserPage() {
 
           <div>
             <p className="font-semibold text-green-950">
-              Invite-only access
+              Director-controlled account creation
             </p>
 
             <p className="mt-1 text-sm leading-6 text-green-800">
-              The user receives a secure invitation email and completes account setup from the link.
+              The School Director creates the account directly. The user receives temporary credentials and must change the password on first login.
             </p>
           </div>
         </div>
