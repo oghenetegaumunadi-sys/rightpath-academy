@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
   BarChart3,
+  Bell,
   BookOpen,
   CalendarCheck,
   CalendarDays,
@@ -57,6 +58,11 @@ const navigation = [
     label: "Timetable",
     href: "/timetable",
     icon: CalendarDays,
+  },
+  {
+    label: "Announcements",
+    href: "/announcements",
+    icon: Bell,
   },
   {
     label: "Attendance",

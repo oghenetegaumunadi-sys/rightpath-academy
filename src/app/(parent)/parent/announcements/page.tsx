@@ -76,13 +76,35 @@ export default async function ParentAnnouncementsPage() {
     );
   }
 
+  const now =
+    new Date();
+
   const visibleAnnouncements =
     announcements?.filter(
-      (announcement) =>
-        !announcement.audience_roles?.length ||
-        announcement.audience_roles.includes(
-          "parent",
-        ),
+      (announcement) => {
+        const intendedForParents =
+          !announcement.audience_roles?.length ||
+          announcement.audience_roles.includes(
+            "parent",
+          );
+
+        const hasStarted =
+          new Date(
+            announcement.starts_at,
+          ) <= now;
+
+        const hasNotExpired =
+          !announcement.expires_at ||
+          new Date(
+            announcement.expires_at,
+          ) > now;
+
+        return (
+          intendedForParents &&
+          hasStarted &&
+          hasNotExpired
+        );
+      },
     ) ?? [];
 
   return (
