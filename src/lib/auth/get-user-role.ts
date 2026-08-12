@@ -1,35 +1,102 @@
 import { createClient } from "@/lib/supabase/server";
 
-export async function getUserRole(userId: string) {
-  const supabase = await createClient();
+const ROLE_PRIORITY = [
+  "director",
+  "school_admin",
+  "head_teacher",
+  "teacher",
+  "parent",
 
-  const { data, error } = await supabase
+  // Legacy roles retained during migration
+  "principal",
+  "vice_principal",
+  "admin",
+
+  // Deferred roles
+  "accountant",
+  "librarian",
+] as const;
+
+export async function getUserRole(
+  userId: string,
+) {
+  const supabase =
+    await createClient();
+
+  const {
+    data,
+    error,
+  } = await supabase
     .from("profile_roles")
-    .select(
-      `
-        roles (
-          name
-        )
-      `,
-    )
-    .eq("profile_id", userId)
-    .limit(1)
-    .maybeSingle();
+    .select(`
+      roles (
+        name
+      )
+    `)
+    .eq(
+      "profile_id",
+      userId,
+    );
 
   if (error) {
-    console.error("Unable to load user role:", error.message);
+    console.error(
+      "Unable to load user roles:",
+      error.message,
+    );
+
     return null;
   }
 
-  const roleRelation = data?.roles;
+  const roleNames =
+    data
+      ?.flatMap((item) => {
+        const relation =
+          item.roles;
 
-  if (!roleRelation) {
-    return null;
+        if (!relation) {
+          return [];
+        }
+
+        if (
+          Array.isArray(
+            relation,
+          )
+        ) {
+          return relation
+            .map(
+              (role) =>
+                role?.name,
+            )
+            .filter(
+              (
+                role,
+              ): role is string =>
+                Boolean(role),
+            );
+        }
+
+        return relation.name
+          ? [
+              relation.name,
+            ]
+          : [];
+      }) ?? [];
+
+  for (
+    const role of
+    ROLE_PRIORITY
+  ) {
+    if (
+      roleNames.includes(
+        role,
+      )
+    ) {
+      return role;
+    }
   }
 
-  if (Array.isArray(roleRelation)) {
-    return roleRelation[0]?.name ?? null;
-  }
-
-  return roleRelation.name ?? null;
+  return (
+    roleNames[0] ??
+    null
+  );
 }
